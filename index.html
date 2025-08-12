@@ -9,7 +9,10 @@
 <body>
     <div class="game-container">
         <h1>Catch the Cat! It's so fun!</h1>
-        <p>Score: <span id="score">0</span></p>
+        <div id="scoreboard">
+            <p>Score: <span id="score">0</span> | High Score: <span id="high-score">0</span></p>
+            <p>Time: <span id="time">30.0</span>s | Level: <span id="level">1</span></p>
+        </div>
         <div id="cat" class="cat"></div>
         <button id="start-button">Start Game</button>
         <button id="pause-button">Pause Game</button>

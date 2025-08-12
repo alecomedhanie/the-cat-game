@@ -12,6 +12,14 @@ body {
     text-align: center;
 }
 
+#scoreboard {
+    margin-bottom: 20px;
+}
+
+#scoreboard p {
+    margin: 5px 0;
+}
+
 #cat {
     width: 50px;
     height: 50px;
