@@ -3,9 +3,14 @@ const scoreDisplay = document.getElementById('score');
 const startButton = document.getElementById('start-button');
 const stopButton = document.getElementById('stop-button');
 const pauseButton = document.getElementById('pause-button');
+const timeDisplay = document.getElementById('time');
+const levelDisplay = document.getElementById('level');
+const highScoreDisplay = document.getElementById('high-score');
 
-if (cat && scoreDisplay && startButton && stopButton && pauseButton) {
+if (cat && scoreDisplay && timeDisplay && levelDisplay && highScoreDisplay && startButton && stopButton && pauseButton) {
     let score = 0;
+    let level = 1;
+    let catSpeed = 1000;
     let isPlaying = false;
     let isPaused = false;
     let gameInterval;
@@ -15,6 +20,9 @@ if (cat && scoreDisplay && startButton && stopButton && pauseButton) {
     let powerUpTimeout;
     let remainingTime;
     let startTime;
+    let timerInterval;
+    let highScore = Number(localStorage.getItem('highScore')) || 0;
+    highScoreDisplay.textContent = highScore;
 
     startButton.addEventListener('click', startGame);
     stopButton.addEventListener('click', stopGame);
@@ -24,7 +32,10 @@ if (cat && scoreDisplay && startButton && stopButton && pauseButton) {
 
     function startGame() {
         score = 0;
+        level = 1;
+        catSpeed = 1000;
         scoreDisplay.textContent = score;
+        levelDisplay.textContent = level;
         isPlaying = true;
         isPaused = false;
         cat.style.display = 'block';
@@ -33,9 +44,11 @@ if (cat && scoreDisplay && startButton && stopButton && pauseButton) {
         pauseButton.disabled = false;
 
         moveCat();
-        gameInterval = setInterval(moveCat, 1000);
+        gameInterval = setInterval(moveCat, catSpeed);
         startTime = Date.now();
         remainingTime = gameDuration;
+        timeDisplay.textContent = (remainingTime / 1000).toFixed(1);
+        timerInterval = setInterval(updateTimer, 100);
         gameTimeout = setTimeout(endGame, remainingTime);
         spawnPowerUp();
     }
@@ -56,7 +69,8 @@ if (cat && scoreDisplay && startButton && stopButton && pauseButton) {
                 pauseButton.textContent = 'Pause Game';
                 startTime = Date.now();
                 gameTimeout = setTimeout(endGame, remainingTime);
-                gameInterval = setInterval(moveCat, 1000);
+                gameInterval = setInterval(moveCat, catSpeed);
+                timerInterval = setInterval(updateTimer, 100);
                 spawnPowerUp();
             } else {
                 // Pause game
@@ -65,6 +79,7 @@ if (cat && scoreDisplay && startButton && stopButton && pauseButton) {
                 clearInterval(gameInterval);
                 clearTimeout(gameTimeout);
                 clearTimeout(powerUpTimeout);
+                clearInterval(timerInterval);
                 remainingTime -= Date.now() - startTime;
             }
         }
@@ -74,6 +89,7 @@ if (cat && scoreDisplay && startButton && stopButton && pauseButton) {
         if (isPlaying && !isPaused) {
             score += (currentPowerUp === 'doublePoints') ? 2 : 1;
             scoreDisplay.textContent = score;
+            updateLevel();
             moveCat();
         }
     }
@@ -84,10 +100,16 @@ if (cat && scoreDisplay && startButton && stopButton && pauseButton) {
         clearInterval(gameInterval);
         clearTimeout(gameTimeout);
         clearTimeout(powerUpTimeout);
+        clearInterval(timerInterval);
         cat.style.display = 'none';
         startButton.disabled = false;
         stopButton.disabled = true;
         pauseButton.disabled = true;
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('highScore', highScore);
+            highScoreDisplay.textContent = highScore;
+        }
         alert(`Game over! Your score is ${score}`);
     }
 
@@ -131,6 +153,22 @@ if (cat && scoreDisplay && startButton && stopButton && pauseButton) {
         };
     }
 
+    function updateTimer() {
+        const timeLeft = Math.max(remainingTime - (Date.now() - startTime), 0);
+        timeDisplay.textContent = (timeLeft / 1000).toFixed(1);
+    }
+
+    function updateLevel() {
+        const newLevel = Math.floor(score / 10) + 1;
+        if (newLevel !== level) {
+            level = newLevel;
+            levelDisplay.textContent = level;
+            catSpeed = Math.max(1000 - (level - 1) * 100, 300);
+            clearInterval(gameInterval);
+            gameInterval = setInterval(moveCat, catSpeed);
+        }
+    }
+
     function spawnPowerUp() {
         const powerUps = ['slowDown', 'doublePoints', 'freeze'];
         const randomPowerUp = powerUps[Math.floor(Math.random() * powerUps.length)];
@@ -153,6 +191,9 @@ if (cat && scoreDisplay && startButton && stopButton && pauseButton) {
 } else {
     if (!cat) console.error('Cat element not found');
     if (!scoreDisplay) console.error('Score display element not found');
+    if (!timeDisplay) console.error('Time display element not found');
+    if (!levelDisplay) console.error('Level display element not found');
+    if (!highScoreDisplay) console.error('High score display element not found');
     if (!startButton) console.error('Start button not found');
     if (!stopButton) console.error('Stop button not found');
     if (!pauseButton) console.error('Pause button not found');
